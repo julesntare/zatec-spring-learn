@@ -69,32 +69,26 @@ class TodoControllerTest(
 
     @Test
     fun `can get all completed todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
-        mockMvc.get("/todo/completed")
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/completed")
             .andExpect {
                 status { isOk() }
+            }.andExtractBody()
 
-                content {
-                    jsonPath("task", Matchers.containsString("cleaning up"))
-                }
-
-            }
+        Assertions.assertThat(responseBody.map { it.task }).containsExactly("cleaning up")
     }
 
     @Test
     fun `can get all incomplete todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
-        mockMvc.get("/todo/incomplete")
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/incomplete")
             .andExpect {
                 status { isOk() }
+            }.andExtractBody()
 
-                content {
-                    jsonPath("task", Matchers.containsString("coding spring"))
-                }
-
-            }
+        Assertions.assertThat(responseBody.map { it.task }).containsExactly("cooking a meal", "coding spring")
     }
 
     @Test
@@ -113,7 +107,7 @@ class TodoControllerTest(
 
     @Test
     fun `can remove all completed todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
         mockMvc.delete("/todo/completed")
             .andExpect { status { isOk() } }
