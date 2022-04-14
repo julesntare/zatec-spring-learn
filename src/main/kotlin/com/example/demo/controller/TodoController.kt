@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.RestController
 class TodoController(
     private val todoService: TodoService
 ) {
+    @GetMapping("/{id}")
+    fun getOneTodo(
+        @PathVariable id: Int
+    ) =
+        todoService.getById(id).toResponse()
     @GetMapping("/all")
     fun getAll() =
         todoService.getAll().toResponse()
