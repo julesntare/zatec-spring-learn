@@ -2,6 +2,7 @@ package com.example.demo.persistence
 
 import org.springframework.data.jpa.repository.JpaRepository
 import javax.persistence.*
+import javax.transaction.Transactional
 
 @Table(name="todo")
 @Entity(name="todo")
@@ -16,5 +17,6 @@ class TodoEntity (
 
 interface TodoRepository: JpaRepository<TodoEntity, Int> {
     fun findAllByCompleted(completed: Boolean):List<TodoEntity>
+    @Transactional
     fun deleteAllByCompleted(completed: Boolean)
 }

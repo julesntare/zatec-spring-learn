@@ -41,7 +41,7 @@ class TodoRepositoryTest(
     fun `can get all incomplete todos`() {
         val testData = todoRepository.saveAll(testData)
         val uncompleted = todoRepository.findAllByCompleted(false)
-        Assertions.assertThat(uncompleted.map {it.task}).containsExactly("cooking a meal")
+        Assertions.assertThat(uncompleted.map {it.task}).containsExactly("cooking a meal", "coding spring")
     }
 
     @Test

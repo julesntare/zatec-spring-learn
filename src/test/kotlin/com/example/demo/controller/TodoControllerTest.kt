@@ -3,6 +3,7 @@ package com.example.demo.controller
 import com.example.demo.persistence.TodoEntity
 import com.example.demo.persistence.TodoRepository
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.delete
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.put
+import org.springframework.test.web.servlet.*
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -58,41 +56,39 @@ class TodoControllerTest(
     }
 
     @Test
-    fun `will return 404 on unknown task id`() {
-        mockMvc.get("/todo/12")
+    fun `can get all todo`() {
+        todoRepository.saveAll(testData)
+
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/all")
             .andExpect {
-                status { isNotFound() }
-            }
+                status { isOk() }
+            }.andExtractBody()
+
+        Assertions.assertThat(responseBody.size).isGreaterThanOrEqualTo(3)
     }
 
     @Test
     fun `can get all completed todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
-        mockMvc.get("/todo/completed")
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/completed")
             .andExpect {
                 status { isOk() }
+            }.andExtractBody()
 
-                content {
-                    jsonPath("task", Matchers.containsString("cleaning up"))
-                }
-
-            }
+        Assertions.assertThat(responseBody.map { it.task }).containsExactly("cleaning up")
     }
 
     @Test
     fun `can get all incomplete todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
-        mockMvc.get("/todo/incomplete")
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/incomplete")
             .andExpect {
                 status { isOk() }
+            }.andExtractBody()
 
-                content {
-                    jsonPath("task", Matchers.containsString("coding spring"))
-                }
-
-            }
+        Assertions.assertThat(responseBody.map { it.task }).containsExactly("cooking a meal", "coding spring")
     }
 
     @Test
@@ -111,7 +107,7 @@ class TodoControllerTest(
 
     @Test
     fun `can remove all completed todos`() {
-        val persistedTestData = todoRepository.saveAll(testData)
+        todoRepository.saveAll(testData)
 
         mockMvc.delete("/todo/completed")
             .andExpect { status { isOk() } }
@@ -132,4 +128,9 @@ class TodoControllerTest(
 
     private fun TodoRequest.asJsonString() =
         jacksonObjectMapper().writeValueAsString(this)
+
+    private inline fun <reified T> ResultActionsDsl.andExtractBody() =
+        andReturn().response.let {
+            jacksonObjectMapper().readValue<T>(it.contentAsString)
+        }
 }
