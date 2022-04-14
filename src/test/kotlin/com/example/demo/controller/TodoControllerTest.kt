@@ -3,6 +3,7 @@ package com.example.demo.controller
 import com.example.demo.persistence.TodoEntity
 import com.example.demo.persistence.TodoRepository
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.delete
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.put
+import org.springframework.test.web.servlet.*
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -55,6 +53,18 @@ class TodoControllerTest(
                 }
 
             }
+    }
+
+    @Test
+    fun `can get all todo`() {
+        todoRepository.saveAll(testData)
+
+        val responseBody: List<TodoResponse> = mockMvc.get("/todo/all")
+            .andExpect {
+                status { isOk() }
+            }.andExtractBody()
+
+        Assertions.assertThat(responseBody.size).isGreaterThanOrEqualTo(3)
     }
 
     @Test
@@ -124,4 +134,9 @@ class TodoControllerTest(
 
     private fun TodoRequest.asJsonString() =
         jacksonObjectMapper().writeValueAsString(this)
+
+    private inline fun <reified T> ResultActionsDsl.andExtractBody() =
+        andReturn().response.let {
+            jacksonObjectMapper().readValue<T>(it.contentAsString)
+        }
 }
