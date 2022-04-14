@@ -58,6 +58,14 @@ class TodoControllerTest(
     }
 
     @Test
+    fun `will return 404 on unknown task id`() {
+        mockMvc.get("/todo/12")
+            .andExpect {
+                status { isNotFound() }
+            }
+    }
+
+    @Test
     fun `can get all completed todos`() {
         val persistedTestData = todoRepository.saveAll(testData)
 
